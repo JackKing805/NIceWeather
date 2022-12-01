@@ -1,0 +1,52 @@
+package com.cool.nav
+
+import android.app.Activity
+import android.util.Log
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+
+/**
+ * @ClassName NavigationEffect.java
+ * @author usopp
+ * @version 1.0.0
+ * @Description TODO
+ * @createTime 2022年09月22日 17:48:00
+ */
+
+@Composable
+fun NavigationEffect(
+    startDestination: String, builder: NavGraphBuilder.() -> Unit,
+) {
+    val navController = rememberNavController()
+    val activity = (LocalContext.current as? Activity)
+    val flow = NavChannel.navChannel
+    LaunchedEffect(activity, navController, flow) {
+        flow.collect {
+            if (activity?.isFinishing == true) {
+                return@collect
+            }
+            navController.handleComposeNavigationIntent(it)
+            navController.backQueue.forEachIndexed { index, navBackStackEntry ->
+                Log.e(
+                    "NavigationEffects",
+                    "index:$index=NavigationEffects: ${navBackStackEntry.destination.route}",
+                )
+            }
+        }
+    }
+    NavHost(
+        navController = navController,
+        startDestination = startDestination,
+        builder = builder
+    )
+}
+
